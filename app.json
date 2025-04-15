@@ -25,6 +25,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "BACK_URL": "http://91.186.198.226:8081"
     }
   }
 }

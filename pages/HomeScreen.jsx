@@ -1,6 +1,7 @@
 import {Image, StyleSheet, Text, View} from "react-native";
 import {Item} from "../components/Item";
 import React from "react";
+import Constants from "expo-constants";
 
 export const HomeScreen = ({ navigation }) => {
     return (

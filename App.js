@@ -1,28 +1,45 @@
 import React from "react";
-import { Image, View, Text, StyleSheet } from "react-native";
-import { createDrawerNavigator } from "@react-navigation/drawer";
 import { NavigationContainer } from "@react-navigation/native";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { createStackNavigator } from "@react-navigation/stack";
+
 import { TopBar } from "./components/TopBar";
 import { BottomBar } from "./components/BottomBar";
-import { Item } from "./components/Item";
-import {HomeScreen} from "./pages/HomeScreen";
-import {SubjectQueueManager} from "./pages/SubjectQueueManager";
-import {SubjectDetailsScreen} from "./pages/SubjectDetailedScreen";
+
+import LoginScreen from "./pages/LoginScreen";
+import { HomeScreen } from "./pages/HomeScreen";
+import { SubjectQueueManager } from "./pages/SubjectQueueManager";
+import { SubjectDetailsScreen } from "./pages/SubjectDetailedScreen";
 
 const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
 
-const App = () => {
+// 2. Компонент с Drawer + TopBar + BottomBar
+function MainApp() {
     return (
-        <NavigationContainer>
+        <>
             <TopBar />
-            <Drawer.Navigator screenOptions={{ headerShown: false }} id="mainDrawer">
+            <Drawer.Navigator screenOptions={{ headerShown: false }}>
                 <Drawer.Screen name="Home" component={HomeScreen} />
                 <Drawer.Screen name="Queue" component={SubjectQueueManager} />
                 <Drawer.Screen name="SubjectDetails" component={SubjectDetailsScreen} />
             </Drawer.Navigator>
             <BottomBar />
+        </>
+    );
+}
+
+// 3. Корневой навигатор: сначала Login, потом MainApp
+export default function App() {
+    return (
+        <NavigationContainer>
+            <Stack.Navigator
+                initialRouteName="Login"           // Явно указываем первый экран
+                screenOptions={{ headerShown: false }}
+            >
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="MainApp" component={MainApp} />
+            </Stack.Navigator>
         </NavigationContainer>
     );
-};
-
-export default App;
+}

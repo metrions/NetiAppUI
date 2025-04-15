@@ -1,0 +1,63 @@
+// LoginScreen.js
+import React, { useEffect, useState } from 'react';
+import { View, Button, Text, ActivityIndicator } from 'react-native';
+import { useAuthRequest } from 'expo-auth-session';
+
+// Импортируем необходимые функции и константы из auth/KeycloakAuth
+import { discovery, getAuthRequestConfig, exchangeCodeForToken, redirectUri } from '../auth/KeycloakAuth';
+
+export default function LoginScreen() {
+    const [tokens, setTokens] = useState(null);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    // Получаем базовую конфигурацию для useAuthRequest из модуля auth/KeycloakAuth
+    const authRequestConfig = getAuthRequestConfig();
+
+    // Хук для авторизации через expo-auth-session
+    const [request, response, promptAsync] = useAuthRequest(authRequestConfig, discovery);
+
+    useEffect(() => {
+        const exchange = async () => {
+            if (response?.type === 'success' && response.params.code) {
+                setLoading(true);
+                try {
+                    // Используем функцию из auth/KeycloakAuth для обмена кода на токены
+                    const tokensData = await exchangeCodeForToken(response.params.code);
+                    console.log('Получены токены:', tokensData);
+                    setTokens(tokensData);
+                } catch (e) {
+                    console.error('Ошибка входа:', e);
+                    setError(e.message);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+        exchange();
+    }, [response]);
+
+    return (
+        <View style={{ padding: 20 }}>
+            <Button
+                title={loading ? 'Загрузка...' : 'Войти через Keycloak'}
+                onPress={() => promptAsync()}
+                disabled={!request || loading}
+            />
+
+            {tokens && (
+                <Text style={{ marginTop: 20 }}>
+                    Токен: {tokens.access_token.slice(0, 40)}...
+                </Text>
+            )}
+
+            {error && (
+                <Text style={{ color: 'red', marginTop: 20 }}>
+                    Ошибка: {error}
+                </Text>
+            )}
+
+            {loading && <ActivityIndicator style={{ marginTop: 20 }} size="large" />}
+        </View>
+    );
+}

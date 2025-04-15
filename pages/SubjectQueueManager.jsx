@@ -3,16 +3,18 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { SubjectPanel } from "../components/SubjectPanel";
 import { useFocusEffect } from "@react-navigation/native";
+import Constants from "expo-constants";
 
 export const SubjectQueueManager = () => {
     const [sessionSubjects, setSessionSubjects] = useState([]);
-    const BACK_URL = "http://192.168.0.108:8080";
+    const BACK_URL = Constants.expoConfig.extra.BACK_URL;
 
     useFocusEffect(
         useCallback(() => {
             const fetchSubjects = async () => {
                 try {
                     console.log(BACK_URL);
+                    console.log(`${BACK_URL}/session`)
                     const response = await axios.get(`${BACK_URL}/session`);
                     setSessionSubjects(response.data);
                     console.log("📡 Загружены предметы:", response.data);

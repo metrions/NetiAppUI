@@ -4,9 +4,10 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import { TimePanel } from "../components/TimePanel";
 import axios from "axios";
+import Constants from "expo-constants";
 
 export const SubjectDetailsScreen = ({ route }) => {
-    const BACK_URL = "http://192.168.0.108:8080";
+    const BACK_URL = Constants.expoConfig.extra.BACK_URL;
 
     const { subject } = route.params;
 
