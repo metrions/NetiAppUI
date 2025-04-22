@@ -18,22 +18,35 @@ export default function LoginScreen() {
     const [request, response, promptAsync] = useAuthRequest(authRequestConfig, discovery);
 
     useEffect(() => {
+        console.log('useEffect сработал. response:', response);
+
         const exchange = async () => {
             if (response?.type === 'success' && response.params.code) {
+                console.log('Получен code:', response.params.code);
+
                 setLoading(true);
                 try {
-                    // Используем функцию из auth/KeycloakAuth для обмена кода на токены
+                    console.log('Начинаем обмен кода на токен...');
                     const tokensData = await exchangeCodeForToken(response.params.code);
-                    console.log('Получены токены:', tokensData);
+                    console.log('Токены успешно получены:', tokensData);
+
                     setTokens(tokensData);
                 } catch (e) {
-                    console.error('Ошибка входа:', e);
+                    console.error('Ошибка при получении токена:', e);
                     setError(e.message);
                 } finally {
+                    console.log('Завершаем загрузку');
                     setLoading(false);
                 }
+            } else if (response?.type === 'error') {
+                console.error('Ошибка при авторизации:', response?.error);
+                setError('Ошибка авторизации');
+                setLoading(false);
+            } else {
+                console.log('Ожидание ответа...');
             }
         };
+
         exchange();
     }, [response]);
 
@@ -41,7 +54,10 @@ export default function LoginScreen() {
         <View style={{ padding: 20 }}>
             <Button
                 title={loading ? 'Загрузка...' : 'Войти через Keycloak'}
-                onPress={() => promptAsync()}
+                onPress={() => {
+                    console.log('Нажата кнопка авторизации');
+                    promptAsync();
+                }}
                 disabled={!request || loading}
             />
 

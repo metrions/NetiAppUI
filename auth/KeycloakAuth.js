@@ -18,6 +18,7 @@ export const redirectUri = makeRedirectUri({
   path: 'callback',
   useProxy: false, // отключаем прокси, если требуется точно использовать нужный URI
 });
+//export const redirectUri = makeRedirectUri({ useProxy: true });
 console.log("redirectUri", redirectUri);
 
 // Функция возвращает конфигурацию запроса для useAuthRequest
