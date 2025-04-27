@@ -31,7 +31,7 @@ export function getAuthRequestConfig() {
 }
 
 // Функция для обмена кода авторизации на токены
-export async function exchangeCodeForToken(code) {
+export async function exchangeCodeForToken(code, codeVerifier) {
     const tokenResponse = await fetch(discovery.tokenEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -40,7 +40,8 @@ export async function exchangeCodeForToken(code) {
             `&code=${code}` +
             `&redirect_uri=${encodeURIComponent(redirectUri)}` +
             `&client_id=${clientId}` +
-            `&client_secret=${clientSecret}`
+            `&client_secret=${clientSecret}` +
+            `&code_verifier=${codeVerifier}`
     });
     if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();

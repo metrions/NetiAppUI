@@ -15,7 +15,11 @@ export default function LoginScreen() {
     const authRequestConfig = getAuthRequestConfig();
 
     // Хук для авторизации через expo-auth-session
-    const [request, response, promptAsync] = useAuthRequest(authRequestConfig, discovery);
+    const [request, response, promptAsync] = useAuthRequest(
+        authRequestConfig,
+        discovery
+    );
+
 
     useEffect(() => {
         console.log('useEffect сработал. response:', response);
@@ -24,10 +28,16 @@ export default function LoginScreen() {
             if (response?.type === 'success' && response.params.code) {
                 console.log('Получен code:', response.params.code);
 
+                if (!request?.codeVerifier) {
+                    console.error('Code verifier отсутствует в request');
+                    setError('Code verifier отсутствует');
+                    return;
+                }
+
                 setLoading(true);
                 try {
                     console.log('Начинаем обмен кода на токен...');
-                    const tokensData = await exchangeCodeForToken(response.params.code);
+                    const tokensData = await exchangeCodeForToken(response.params.code, request.codeVerifier);
                     console.log('Токены успешно получены:', tokensData);
 
                     setTokens(tokensData);
