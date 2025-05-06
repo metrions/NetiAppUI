@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, ScrollView } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { SubjectPanel } from "../components/SubjectPanel";
@@ -14,7 +14,6 @@ export const SubjectQueueManager = () => {
             const fetchSubjects = async () => {
                 try {
                     console.log(BACK_URL);
-                    console.log(`${BACK_URL}/session`)
                     const response = await axios.get(`${BACK_URL}/session`);
                     setSessionSubjects(response.data);
                     console.log("📡 Загружены предметы:", response.data);
@@ -30,18 +29,36 @@ export const SubjectQueueManager = () => {
     return (
         <View style={styles.container}>
             <Text style={styles.welcome}>Лабораторные занятия</Text>
-            {sessionSubjects.length > 0 ? (
-                sessionSubjects.map((subject) => (
-                    <SubjectPanel subject={subject} key={subject.id} />
-                ))
-            ) : (
-                <Text style={{ color: "white" }}>Нет данных</Text>
-            )}
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+            >
+                {sessionSubjects.length > 0 ? (
+                    sessionSubjects.map((subject) => (
+                        <SubjectPanel subject={subject} key={subject.id} />
+                    ))
+                ) : (
+                    <Text style={{ color: "white" }}>Нет данных</Text>
+                )}
+            </ScrollView>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#17161b", padding: 20 },
-    welcome: { paddingBottom: 30, fontSize: 24, fontWeight: "bold", color: "#ffffff" },
+    container: {
+        flex: 1,
+        backgroundColor: "#17161b",
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    welcome: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#ffffff",
+        marginBottom: 20,
+    },
+    scrollContent: {
+        paddingBottom: 100, // чтобы не обрезались нижние элементы
+    },
 });

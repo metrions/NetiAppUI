@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
         paddingTop: 40,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between"
+        justifyContent: "space-between" // это делает левую и правую части по краям
     },
     left: {
         flexDirection: "row",
