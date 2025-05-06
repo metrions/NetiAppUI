@@ -5,12 +5,14 @@ import { Client } from "@stomp/stompjs";
 import { TimePanel } from "../components/TimePanel";
 import axios from "axios";
 import Constants from "expo-constants";
+import {getSessions} from "../api/session";
+import {parseJwt} from "../auth/tokenProcess";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const SubjectDetailsScreen = ({ route }) => {
-    const BACK_URL = Constants.expoConfig.extra.BACK_URL;
+    const BACK_URL = "http://192.168.0.108:8080";
 
     const { subject } = route.params;
-
     const [stompClient, setStompClient] = useState(null);
     const [queueData, setQueueData] = useState({places: []});
     const [notConnected, setNotConnected] = useState(false);
@@ -20,8 +22,8 @@ export const SubjectDetailsScreen = ({ route }) => {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get(`${BACK_URL}/session/${subject.id}`);
-                setQueueData({ places: response.data });
+                const response = await getSessions(subject);
+                setQueueData({ places: response });
                 console.log(queueData);
             } catch (error) {
                 console.error("Ошибка при получении данных:", error);
@@ -33,17 +35,18 @@ export const SubjectDetailsScreen = ({ route }) => {
 
     }, [subject.id]);
 
-    const sendQueueRequest = (placeNumber) => {
+    const sendQueueRequest = async (placeNumber) => {
         console.log(stompClient?.connected);
 
         if (!stompClient?.connected) {
             console.log("STOMP не подключен, пытаемся переподключиться...");
             connectStompClient();
         }
-
+        const parsedToken = parseJwt(await AsyncStorage.getItem("token"));
         if (stompClient && stompClient.connected) {
             const request = {
                 sessionId: subject.id,
+                mail: parsedToken.email,
                 placeNumber,
             };
 

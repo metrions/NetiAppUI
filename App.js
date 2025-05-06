@@ -34,10 +34,8 @@ export default function App() {
     return (
         <NavigationContainer>
             <Stack.Navigator
-                initialRouteName="Login"           // Явно указываем первый экран
                 screenOptions={{ headerShown: false }}
             >
-                <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="MainApp" component={MainApp} />
             </Stack.Navigator>
         </NavigationContainer>

@@ -1,11 +1,17 @@
-import React from 'react'
-import {Image, View, Text, StyleSheet} from "react-native";
+import React from 'react';
+import { Image, View, Text, StyleSheet } from "react-native";
+import LoginScreen from "../pages/LoginScreen";
 
 export const TopBar = () => {
     return (
         <View style={styles.container}>
-            <Image style={styles.image} source={require('../static/icon/neti_icon.png')} />
-            <Text style={styles.text}>Services</Text>
+            <View style={styles.left}>
+                <Image style={styles.image} source={require('../static/icon/neti_icon.png')} />
+                <Text style={styles.text}>Services</Text>
+            </View>
+            <View style={styles.right}>
+                <LoginScreen />
+            </View>
         </View>
     )
 }
@@ -16,12 +22,15 @@ const styles = StyleSheet.create({
         padding: 10,
         height: 85,
         paddingTop: 40,
-        display: "flex",
         flexDirection: "row",
-        alignItems: "center"
+        alignItems: "center",
+        justifyContent: "space-between"
+    },
+    left: {
+        flexDirection: "row",
+        alignItems: "center",
     },
     text: {
-        fontStyle: 'Verdana',
         fontSize: 16,
         color: "white",
         paddingLeft: 15,
@@ -31,4 +40,4 @@ const styles = StyleSheet.create({
         width: 25,
         height: 25,
     }
-})
+});
