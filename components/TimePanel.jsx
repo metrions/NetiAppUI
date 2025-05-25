@@ -1,6 +1,6 @@
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 
-export const TimePanel = ({ startTime, endTime, placeNumber, isAvailable, onPress }) => {
+export const TimePanel = ({ startTime, endTime, placeNumber, isAvailable, occupiedBy, onPress }) => {
     return (
         <TouchableOpacity
             style={[styles.timePanel, !isAvailable && styles.disabledPanel]}
@@ -8,8 +8,11 @@ export const TimePanel = ({ startTime, endTime, placeNumber, isAvailable, onPres
             disabled={!isAvailable}
         >
             <Text style={styles.timeText}>
-                {startTime} - {endTime} {isAvailable ? "" : "(Занято)"}
+                {startTime} - {endTime}
             </Text>
+            {!isAvailable && (
+                <Text style={styles.occupiedText}>{occupiedBy}</Text>
+            )}
         </TouchableOpacity>
     );
 };

@@ -1,126 +1,113 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Button } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { View, Text, StyleSheet } from "react-native";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import { TimePanel } from "../components/TimePanel";
-import axios from "axios";
-import Constants from "expo-constants";
-import {getSessions} from "../api/session";
-import {parseJwt} from "../auth/tokenProcess";
+import { getSessions } from "../api/session";
+import { parseJwt } from "../auth/tokenProcess";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const SubjectDetailsScreen = ({ route }) => {
-    const BACK_URL = "http://192.168.0.108:8080";
-
-    const { subject } = route.params;
-    const [stompClient, setStompClient] = useState(null);
-    const [queueData, setQueueData] = useState({places: []});
-    const [notConnected, setNotConnected] = useState(false);
-
+    const BACK_URL = "http://192.168.0.105:8080";
     const WS_URL = `${BACK_URL}/sockjs`;
+    const { subject } = route.params;
 
+    const [queueData, setQueueData] = useState({ places: [] });
+    const stompClientRef = useRef(null);
+
+    // Получение начальных данных
     useEffect(() => {
-        async function fetchData() {
+        const fetchData = async () => {
             try {
                 const response = await getSessions(subject);
-                setQueueData({ places: response });
-                console.log(queueData);
+                setQueueData(response);
+                console.log("📥 Получены места от сервера:", response);
             } catch (error) {
-                console.error("Ошибка при получении данных:", error);
-                setNotConnected(true);
+                console.error("❌ Ошибка при получении данных:", error);
             }
-        }
+        };
 
         fetchData();
-
     }, [subject.id]);
 
-    const sendQueueRequest = async (placeNumber) => {
-        console.log(stompClient?.connected);
-
-        if (!stompClient?.connected) {
-            console.log("STOMP не подключен, пытаемся переподключиться...");
-            connectStompClient();
-        }
-        const parsedToken = parseJwt(await AsyncStorage.getItem("token"));
-        if (stompClient && stompClient.connected) {
-            const request = {
-                sessionId: subject.id,
-                mail: parsedToken.email,
-                placeNumber,
-            };
-
-            stompClient.publish({
-                destination: `/app/queue/${subject.id}`,
-                body: JSON.stringify(request),
-            });
-
-            console.log("Отправлен запрос в очередь:", request);
-        } else {
-            console.error("STOMP не подключен или запрос уже отправлен");
-        }
-    };
-
-    const connectStompClient = () => {
+    // Подключение к STOMP
+    useEffect(() => {
         const socket = new SockJS(WS_URL);
         const client = new Client({
             webSocketFactory: () => socket,
             onConnect: () => {
-                console.log("STOMP подключен");
+                console.log("✅ STOMP подключен");
 
                 client.subscribe(`/topic/queue/${subject.id}`, (message) => {
                     const response = JSON.parse(message.body);
-                    console.log("Получено сообщение сразу после подписки: ", response);
+                    console.log("📨 Сообщение от сервера:", response);
                     setQueueData(response);
                 });
-
-                setStompClient(client);
             },
             onDisconnect: () => {
-                console.log("❌ STOMP отключен");
-                setStompClient(null);
+                console.log("🔌 STOMP отключен");
             },
-            debug: (str) => console.log(str),
+            debug: (str) => console.log("🐞", str),
         });
 
         client.activate();
-    };
-
-    useEffect(() => {
-        connectStompClient();
+        stompClientRef.current = client;
 
         return () => {
-            if (stompClient) {
-                stompClient.deactivate();
-            }
+            client.deactivate();
         };
     }, [subject.id]);
 
+    // Отправка запроса в очередь
+    const sendQueueRequest = async (placeNumber) => {
+        const client = stompClientRef.current;
+
+        if (!client?.connected) {
+            console.log("⚠️ STOMP не подключен");
+            return;
+        }
+
+        const token = await AsyncStorage.getItem("token");
+        const parsedToken = parseJwt(token);
+
+        const request = {
+            sessionId: subject.id,
+            mail: parsedToken.email,
+            name: parsedToken.name,
+            placeNumber,
+        };
+
+        client.publish({
+            destination: `/app/queue/${subject.id}`,
+            body: JSON.stringify(request),
+        });
+
+        console.log("📤 Отправлен запрос:", request);
+    };
+
+    // Вычисление тайм-слотов
     const timeSlots = Array.from({ length: 9 }, (_, index) => {
         const [startHour, startMinute] = subject.startTime.split(":").map(Number);
         const [endHour, endMinute] = subject.endTime.split(":").map(Number);
 
-        const startDate = new Date(2000, 0, 1, startHour, startMinute);
-        const endDate = new Date(2000, 0, 1, endHour, endMinute);
+        const start = new Date(0, 0, 1, startHour, startMinute);
+        const end = new Date(0, 0, 1, endHour, endMinute);
+        const interval = (end - start) / 9;
 
-        const diff = endDate - startDate;
-        const interval = diff / 9;
+        const slotStart = new Date(start.getTime() + index * interval);
+        const slotEnd = new Date(slotStart.getTime() + interval);
 
-        const startTime = new Date(startDate.getTime() + index * interval);
-        const endTime = new Date(startTime.getTime() + interval);
-
-        const startTimeString = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`;
-        const endTimeString = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
-
-        return { startTime: startTimeString, endTime: endTimeString, placeNumber: index + 1 };
+        return {
+            startTime: slotStart.toTimeString().slice(0, 5),
+            endTime: slotEnd.toTimeString().slice(0, 5),
+            placeNumber: index + 1,
+        };
     });
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{subject.subjectName}</Text>
-            <Text style={styles.time}>
-                {subject.startTime} - {subject.endTime}
-            </Text>
+            <Text style={styles.time}>{subject.startTime} - {subject.endTime}</Text>
             <Text style={styles.info}>Группа: {subject.group}</Text>
             <View style={styles.timePanels}>
                 {timeSlots.map((slot) => (
@@ -129,8 +116,10 @@ export const SubjectDetailsScreen = ({ route }) => {
                         startTime={slot.startTime}
                         endTime={slot.endTime}
                         isAvailable={queueData.places.includes(slot.placeNumber)}
+                        occupiedBy={queueData.placeStudents?.[slot.placeNumber]}
                         onPress={() => sendQueueRequest(slot.placeNumber)}
                     />
+
                 ))}
             </View>
         </View>
@@ -142,4 +131,5 @@ const styles = StyleSheet.create({
     title: { fontSize: 24, fontWeight: "bold", color: "white", marginBottom: 10 },
     time: { fontSize: 18, color: "#f9a825", marginBottom: 5 },
     info: { fontSize: 16, color: "#bbb" },
+    timePanels: { marginTop: 20 },
 });

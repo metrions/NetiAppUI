@@ -28,7 +28,7 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "BACK_URL": "http://192.168.0.108:8080"
+      "BACK_URL": "http://192.168.0.105:8080"
     }
   }
 }

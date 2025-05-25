@@ -14,7 +14,6 @@ import { SubjectDetailsScreen } from "./pages/SubjectDetailedScreen";
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
 
-// 2. Компонент с Drawer + TopBar + BottomBar
 function MainApp() {
     return (
         <>

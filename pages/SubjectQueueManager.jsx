@@ -13,11 +13,19 @@ export const SubjectQueueManager = () => {
         useCallback(() => {
             const fetchSubjects = async () => {
                 try {
-                    console.log(BACK_URL);
-                    const response = await axios.get(`${BACK_URL}/session`);
+                    console.log(`${BACK_URL}/session`);
+                    const response = await axios.get(`${BACK_URL}/session`, {
+                        params: {
+                            day: 'пн',
+                            group: 'ПМИ-22',
+                            weekNumber: 15
+                        }
+                    });
+
                     setSessionSubjects(response.data);
                     console.log("📡 Загружены предметы:", response.data);
                 } catch (error) {
+                    console.log(error);
                     console.error("❌ Ошибка загрузки предметов:", error);
                 }
             };
@@ -59,6 +67,6 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     scrollContent: {
-        paddingBottom: 100, // чтобы не обрезались нижние элементы
+        paddingBottom: 100,
     },
 });
